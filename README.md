@@ -1,4 +1,9 @@
-# In this fork
+# ESPAsyncWebServer (fork)
+
+This a fork of ESPAsyncWebServer as updated by [yubox-node-org](https://github.com/yubox-node-org/ESPAsyncWebServer) to support building [ESPixelStick](https://github.com/forkineye/ESPixelStick).
+
+# Upstream content below
+
 - SPIFFSEditor modifications
 - Added [extras](https://github.com/lorol/ESPAsyncWebServer/tree/master/extras) folder with (Win) tools for re-packing, editing, updating and compressing html to binary arrays embedded to source
 - Added a [SmartSwitch](https://github.com/lorol/ESPAsyncWebServer/tree/master/examples/SmartSwitch) example to test code features
@@ -12,7 +17,7 @@
   - Added LittleFS choice for both [esp8266](https://github.com/esp8266/Arduino/tree/master/libraries/LittleFS) / [esp32](https://github.com/lorol/LITTLEFS) , and FatFS tests for esp32 see [SmartSwitch](https://github.com/lorol/ESPAsyncWebServer/blob/master/examples/SmartSwitch/SmartSwitch.ino#L16 )
 ------------------------------------------------------------------------------------------
 
-# ESPAsyncWebServer 
+# ESPAsyncWebServer
 [![Build Status](https://travis-ci.org/me-no-dev/ESPAsyncWebServer.svg?branch=master)](https://travis-ci.org/me-no-dev/ESPAsyncWebServer) ![](https://github.com/me-no-dev/ESPAsyncWebServer/workflows/ESP%20Async%20Web%20Server%20CI/badge.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/395dd42cfc674e6ca2e326af3af80ffc)](https://www.codacy.com/manual/me-no-dev/ESPAsyncWebServer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=me-no-dev/ESPAsyncWebServer&amp;utm_campaign=Badge_Grade)
 
 For help and support [![Join the chat at https://gitter.im/me-no-dev/ESPAsyncWebServer](https://badges.gitter.im/me-no-dev/ESPAsyncWebServer.svg)](https://gitter.im/me-no-dev/ESPAsyncWebServer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -26,6 +31,9 @@ For ESP32 it requires [AsyncTCP](https://github.com/me-no-dev/AsyncTCP) to work
 To use this library you might need to have the latest git versions of [ESP32](https://github.com/espressif/arduino-esp32) Arduino Core
 
 ## Table of contents
+- [ESPAsyncWebServer (fork)](#espasyncwebserver-fork)
+- [Upstream content below](#upstream-content-below)
+  - [- Added LittleFS choice for both esp8266 / [esp32](https://github.com/lorol/LITTLEFS) , and FatFS tests for esp32 see [SmartSwitch](https://github.com/lorol/ESPAsyncWebServer/blob/master/examples/SmartSwitch/SmartSwitch.ino#L16 )](#--added-littlefs-choice-for-both-esp8266--esp32--and-fatfs-tests-for-esp32-see-smartswitch)
 - [ESPAsyncWebServer](#espasyncwebserver)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
@@ -624,14 +632,14 @@ With this code your ESP is able to serve even large (large in terms of ESP, e.g.
 without memory problems.
 
 You need to create a file handler in outer function (to have a single one for request) but use
-it in a lambda. The catch is that the lambda has it's own lifecycle which may/will cause it's 
-called after the original function is over thus the original file handle is destroyed. Using the 
-captured `&file` in the lambda then causes segfault (Hello, Exception 9!) and the whole ESP crashes.  
+it in a lambda. The catch is that the lambda has it's own lifecycle which may/will cause it's
+called after the original function is over thus the original file handle is destroyed. Using the
+captured `&file` in the lambda then causes segfault (Hello, Exception 9!) and the whole ESP crashes.
 By using this code, you tell the compiler to move the handle into the lambda so it won't be
 destroyed when outer function (that one where you call `request->send(response)`) ends.
 
 ```cpp
-const File file = ... // e.g. SPIFFS.open(path, "r"); 
+const File file = ... // e.g. SPIFFS.open(path, "r");
 
 const contentType = "application/javascript";
 
@@ -640,7 +648,7 @@ AsyncWebServerResponse *response = request->beginResponse(
   file.size(),
   [file](uint8_t *buffer, size_t maxLen, size_t total) mutable -> size_t {
      int bytes = file.read(buffer, maxLen);
-       
+
      // close file at the end
      if (bytes + total == file.size()) file.close();
 
@@ -913,7 +921,7 @@ server.serveStatic("/", SPIFFS, "/www/").setTemplateProcessor(processor);
 
 ### Serving static files by custom handling
 
-It may happen your static files are too big and the ESP will crash the request before it sends the whole file.  
+It may happen your static files are too big and the ESP will crash the request before it sends the whole file.
 In that case, you can handle static files with custom file serving through not found handler.
 
 This code below is more-or-less equivalent to this:
@@ -925,24 +933,24 @@ First, declare the handling function:
 ```cpp
 bool handleStaticFile(AsyncWebServerRequest *request) {
   String path = STATIC_FILES_PREFIX + request->url();
-  
+
   if (path.endsWith("/")) path += F("index.html");
-  
+
   String contentType = getContentType(path);
   String pathWithGz = path + ".gz";
-  
+
   if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
     bool gzipped = false;
     if (SPIFFS.exists(pathWithGz)) {
         gzipped = true;
         path += ".gz";
     }
-      
+
     // TODO serve the file
-    
+
     return true;
   }
-  
+
   return false;
 }
 ```
@@ -950,7 +958,7 @@ And then configure your webserver:
 ```cpp
 webServer.onNotFound([](AsyncWebServerRequest *request) {
   if (handleStaticFile(request)) return;
-  
+
   request->send(404);
 });
 ```
@@ -1204,7 +1212,7 @@ client->binary(flash_binary, 4);
 ```
 
 ### Direct access to web socket message buffer
-When sending a web socket message using the above methods a buffer is created.  Under certain circumstances you might want to manipulate or populate this buffer directly from your application, for example to prevent unnecessary duplications of the data.  This example below shows how to create a buffer and print data to it from an ArduinoJson object then send it.   
+When sending a web socket message using the above methods a buffer is created.  Under certain circumstances you might want to manipulate or populate this buffer directly from your application, for example to prevent unnecessary duplications of the data.  This example below shows how to create a buffer and print data to it from an ArduinoJson object then send it.
 
 ```cpp
 void sendDataWs(AsyncWebSocketClient * client)
@@ -1546,7 +1554,7 @@ Example of OTA code
     // Clean SPIFFS
     SPIFFS.end();
 
-    // Disable client connections    
+    // Disable client connections
     ws.enable(false);
 
     // Advertise connected clients what's going on
@@ -1561,7 +1569,7 @@ Example of OTA code
 
 ### Adding Default Headers
 
-In some cases, such as when working with CORS, or with some sort of custom authentication system, 
+In some cases, such as when working with CORS, or with some sort of custom authentication system,
 you might need to define a header that should get added to all responses (including static, websocket and EventSource).
 The DefaultHeaders singleton allows you to do this.
 
@@ -1588,7 +1596,7 @@ webServer.onNotFound([](AsyncWebServerRequest *request) {
 
 ### Path variable
 
-With path variable you can create a custom regex rule for a specific parameter in a route. 
+With path variable you can create a custom regex rule for a specific parameter in a route.
 For example we want a `sensorId` parameter in a route rule to match only a integer.
 
 ```cpp
@@ -1615,7 +1623,7 @@ Add/Update the following line:
 For platformio modify `platformio.ini`:
 ```ini
 [env:myboard]
-build_flags = 
+build_flags =
   -DASYNCWEBSERVER_REGEX
 ```
 *NOTE*: By enabling `ASYNCWEBSERVER_REGEX`, `<regex>` will be included. This will add an 100k to your binary.
